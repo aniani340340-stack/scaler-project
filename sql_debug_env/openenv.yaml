@@ -1,0 +1,66 @@
+name: sql-debug-env
+version: 1.0.0
+description: >
+  A real-world OpenEnv environment where an AI agent debugs broken SQL queries.
+  Tasks range from simple syntax fixes to complex multi-table logic corrections.
+tags:
+  - openenv
+  - sql
+  - debugging
+  - real-world
+  - code-review
+
+author: ANISH AGRAWAL
+license: MIT
+
+tasks:
+  - id: easy_syntax_fix
+    difficulty: easy
+    description: Fix a SQL syntax error (missing comma between SELECT columns)
+    max_steps: 5
+    reward_range: [0.0, 1.0]
+
+  - id: medium_join_fix
+    difficulty: medium
+    description: Fix a broken JOIN condition that uses wrong key
+    max_steps: 5
+    reward_range: [0.0, 1.0]
+
+  - id: hard_logic_fix
+    difficulty: hard
+    description: >
+      Fix a query that should return the top earner per department,
+      currently returns only the global max using a correlated subquery.
+    max_steps: 5
+    reward_range: [0.0, 1.0]
+
+observation_space:
+  type: object
+  fields:
+    - task_id: string
+    - description: string
+    - broken_sql: string
+    - schema: string
+    - expected_output: string
+    - error_message: string (nullable)
+    - attempt: integer
+    - max_attempts: integer
+    - last_sql: string (nullable)
+
+action_space:
+  type: object
+  fields:
+    - fixed_sql: string
+
+reward:
+  type: float
+  range: [0.0, 1.0]
+  description: >
+    0.0 = syntax error, 0.1 = runtime error, 0.3-0.7 = partial row match,
+    0.8-1.0 = perfect output match (bonus for fewer attempts)
+
+endpoints:
+  reset: POST /reset?task={task_id}
+  step:  POST /step?task={task_id}
+  state: GET  /state?task={task_id}
+  tasks: GET  /tasks
